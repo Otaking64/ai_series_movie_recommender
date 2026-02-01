@@ -273,12 +273,6 @@ class AiRecommender {
       },
     };
 
-    if (logRequests) {
-      // Debug logging for request body.
-      // ignore: avoid_print
-      print('Gemini request ($model): ${jsonEncode(payload)}');
-    }
-
     const maxAttempts = 3;
     for (var attempt = 0; attempt < maxAttempts; attempt++) {
       final response = await _client.post(
@@ -290,7 +284,6 @@ class AiRecommender {
       );
 
       if (response.statusCode == 429 && fastSwitchOn429) {
-        // Bubble up immediately so caller can try the next model.
         return response;
       }
 
