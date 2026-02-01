@@ -59,11 +59,6 @@ class AiRecommender {
 
       for (final model in _modelCandidates) {
         final response = await _postWithRetry(model, prompt, fastSwitchOn429: true);
-        if (logResponses) {
-          // Debug logging for full API response body.
-          // ignore: avoid_print
-          print('Gemini response ($model): ${response.body}');
-        }
         if (response.statusCode >= 200 && response.statusCode < 300) {
           final payload = jsonDecode(response.body) as Map<String, dynamic>;
           final finishReason = _extractFinishReason(payload);
@@ -189,7 +184,6 @@ class AiRecommender {
         }
       }
     } catch (_) {
-      // Ignore parse errors; fall back to raw body length check.
     }
     return body.trim();
   }
@@ -230,7 +224,6 @@ class AiRecommender {
       final decoded = jsonDecode(text);
       return decoded is List ? decoded : null;
     } on FormatException {
-      // Attempt to salvage a JSON array from a larger string.
     }
 
     final start = text.indexOf('[');

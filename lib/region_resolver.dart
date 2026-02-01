@@ -84,7 +84,6 @@ class RegionResolver {
         source: 'location',
       );
     } catch (_) {
-      // Any error in location/placemark lookup falls back to locale.
       return null;
     }
   }

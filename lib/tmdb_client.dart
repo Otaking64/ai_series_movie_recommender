@@ -81,7 +81,6 @@ class TmdbClient {
     final providers = <WatchProvider>[];
     providers.addAll(_parseProviders(regionData, 'flatrate'));
     providers.addAll(_parseProviders(regionData, 'free'));
-    // Optionally: providers.addAll(_parseProviders(regionData, 'ads'));
 
     final link = regionData['link']?.toString() ?? '';
 
@@ -195,8 +194,7 @@ class TmdbClient {
     if (lower.contains('philo')) return 'Philo';
     if (lower.contains('bet+')) return 'BET+';
     if (lower.contains('boomerang')) return 'Boomerang';
-    if (lower.contains('amazon') || lower.contains('prime')) return 'Prime Video';
-    // Fallback: trim and capitalize first letter
+    if (lower.contains('prime')) return 'Prime Video';
     final trimmed = name.trim();
     if (trimmed.isEmpty) return '';
     return '${trimmed[0].toUpperCase()}${trimmed.substring(1)}';
