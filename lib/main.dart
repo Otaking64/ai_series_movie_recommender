@@ -373,7 +373,7 @@ class _RecommendationPageState extends State<RecommendationPage> {
                     ),
                   ],
                 ),
-                if (providers != null && providers.providers.isNotEmpty) ...[
+                if (providers != null && providers.streamOrFree.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Text(
                     'Where to watch (${providers.region}):',
@@ -383,7 +383,7 @@ class _RecommendationPageState extends State<RecommendationPage> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 6,
-                    children: providers.providers.map((provider) {
+                    children: providers.streamOrFree.map((provider) {
                       final imageUrl = _tmdbImageUrl(provider.logoPath);
                       return Chip(
                         avatar: imageUrl != null

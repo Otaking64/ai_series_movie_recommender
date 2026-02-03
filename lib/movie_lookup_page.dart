@@ -410,35 +410,30 @@ class _LookupResultPageState extends State<LookupResultPage> {
                 const SizedBox(height: 12),
                 _Summary(details: details),
                 const SizedBox(height: 16),
-                Text(
-                  'Where to watch (${widget.region.toUpperCase()}):',
-                  style: theme.textTheme.titleMedium,
+                _ProviderSection(
+                  title: 'Stream or free (${widget.region.toUpperCase()})',
+                  providers: providers?.streamOrFree ?? const [],
                 ),
-                const SizedBox(height: 8),
-                if (providers != null && providers.providers.isNotEmpty)
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: providers.providers
-                        .map(
-                          (provider) => Chip(
-                            avatar: _tmdbImageUrl(provider.logoPath) != null
-                                ? CircleAvatar(
-                                    backgroundImage: NetworkImage(
-                                      _tmdbImageUrl(provider.logoPath)!,
-                                    ),
-                                    backgroundColor: Colors.transparent,
-                                  )
-                                : null,
-                            label: Text(provider.displayName),
-                          ),
-                        )
-                        .toList(),
-                  )
-                else
-                  Text(
-                    'No watch providers available in this region.',
-                    style: theme.textTheme.bodyMedium,
+                const SizedBox(height: 12),
+                _ProviderSection(
+                  title: 'Rent (${widget.region.toUpperCase()})',
+                  providers: providers?.rent ?? const [],
+                ),
+                const SizedBox(height: 12),
+                _ProviderSection(
+                  title: 'Buy (${widget.region.toUpperCase()})',
+                  providers: providers?.buy ?? const [],
+                ),
+                if (providers == null ||
+                    (providers.streamOrFree.isEmpty &&
+                        providers.rent.isEmpty &&
+                        providers.buy.isEmpty))
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      'No watch providers available in this region.',
+                      style: theme.textTheme.bodyMedium,
+                    ),
                   ),
               ],
             ),
@@ -458,6 +453,55 @@ class _LookupData {
   const _LookupData({required this.details, required this.providers});
   final TitleDetails details;
   final WatchProvidersResult? providers;
+}
+
+class _ProviderSection extends StatelessWidget {
+  const _ProviderSection({
+    required this.title,
+    required this.providers,
+  });
+
+  final String title;
+  final List<WatchProvider> providers;
+
+  String? _tmdbImageUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    return 'https://image.tmdb.org/t/p/w92$path';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: theme.textTheme.titleMedium),
+        const SizedBox(height: 8),
+        if (providers.isNotEmpty)
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: providers
+                .map(
+                  (provider) => Chip(
+                    avatar: _tmdbImageUrl(provider.logoPath) != null
+                        ? CircleAvatar(
+                            backgroundImage: NetworkImage(
+                              _tmdbImageUrl(provider.logoPath)!,
+                            ),
+                            backgroundColor: Colors.transparent,
+                          )
+                        : null,
+                    label: Text(provider.displayName),
+                  ),
+                )
+                .toList(),
+          )
+        else
+          Text('No options available.', style: theme.textTheme.bodyMedium),
+      ],
+    );
+  }
 }
 
 class _Header extends StatelessWidget {

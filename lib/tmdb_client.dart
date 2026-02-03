@@ -20,6 +20,9 @@ class WatchProvidersResult {
   const WatchProvidersResult({
     required this.region,
     required this.providers,
+    required this.streamOrFree,
+    required this.rent,
+    required this.buy,
     required this.link,
     required this.title,
     this.rating,
@@ -28,6 +31,9 @@ class WatchProvidersResult {
 
   final String region;
   final List<WatchProvider> providers;
+  final List<WatchProvider> streamOrFree;
+  final List<WatchProvider> rent;
+  final List<WatchProvider> buy;
   final String link;
   final String title;
   final double? rating;
@@ -148,14 +154,25 @@ class TmdbClient {
     }
 
     final providers = <WatchProvider>[];
-    providers.addAll(_parseProviders(regionData, 'flatrate'));
-    providers.addAll(_parseProviders(regionData, 'free'));
+    final flatrate = _parseProviders(regionData, 'flatrate');
+    final free = _parseProviders(regionData, 'free');
+    final rent = _parseProviders(regionData, 'rent');
+    final buy = _parseProviders(regionData, 'buy');
+
+    providers
+      ..addAll(flatrate)
+      ..addAll(free)
+      ..addAll(rent)
+      ..addAll(buy);
 
     final link = regionData['link']?.toString() ?? '';
 
     return WatchProvidersResult(
       region: region.toUpperCase(),
       providers: _dedupeProviders(providers),
+      streamOrFree: _dedupeProviders([...flatrate, ...free]),
+      rent: _dedupeProviders(rent),
+      buy: _dedupeProviders(buy),
       link: link,
       title: title,
       rating: rating,
