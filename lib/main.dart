@@ -38,16 +38,16 @@ class _RootTabs extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('AI Movie & TV Recommender'),
+          title: const Text('TV & Movie finder'),
           bottom: const TabBar(
             tabs: [
-              Tab(text: 'Recommend'),
-              Tab(text: 'Lookup'),
+              Tab(icon: Icon(Icons.search), text: 'Find a movie'),
+              Tab(icon: Icon(Icons.auto_awesome), text: 'Recommend'),
             ],
           ),
         ),
         body: const TabBarView(
-          children: [RecommendationPage(), MovieLookupPage()],
+          children: [MovieLookupPage(), RecommendationPage()],
         ),
       ),
     );
