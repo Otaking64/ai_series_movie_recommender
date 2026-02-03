@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'ai_recommender.dart';
+import 'movie_lookup_page.dart';
 import 'region_resolver.dart';
 import 'tmdb_client.dart';
 
@@ -20,10 +21,35 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'AI Movie & TV Recommender',
       theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const RecommendationPage(),
+      home: const _RootTabs(),
+    );
+  }
+}
+
+class _RootTabs extends StatelessWidget {
+  const _RootTabs({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('AI Movie & TV Recommender'),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Recommend'),
+              Tab(text: 'Lookup'),
+            ],
+          ),
+        ),
+        body: const TabBarView(
+          children: [RecommendationPage(), MovieLookupPage()],
+        ),
+      ),
     );
   }
 }
@@ -45,9 +71,7 @@ class _RecommendationPageState extends State<RecommendationPage> {
     logRequests: true,
   );
 
-  late final TmdbClient _tmdbClient = TmdbClient(
-    apiKey: _requireTmdbApiKey(),
-  );
+  late final TmdbClient _tmdbClient = TmdbClient(apiKey: _requireTmdbApiKey());
 
   bool _useLocation = false;
   String? _resolvedRegion;
@@ -100,7 +124,10 @@ class _RecommendationPageState extends State<RecommendationPage> {
       });
     } catch (error) {
       // Fallback to locale if anything goes wrong.
-      final fallback = RegionResolutionResult(countryCode: 'US', source: 'locale');
+      final fallback = RegionResolutionResult(
+        countryCode: 'US',
+        source: 'locale',
+      );
       setState(() {
         _resolvedRegion = fallback.countryCode;
         _regionSource = fallback.source;
@@ -175,67 +202,61 @@ class _RecommendationPageState extends State<RecommendationPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('AI Movie & TV Recommender'),
-        backgroundColor: theme.colorScheme.inversePrimary,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Text(
-                'Describe what you feel like watching.',
-                style: theme.textTheme.titleMedium,
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text(
+              'Describe what you feel like watching.',
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _queryController,
+              textInputAction: TextInputAction.search,
+              onSubmitted: (_) => _fetchRecommendations(),
+              decoration: const InputDecoration(
+                labelText: 'Your vibe or genre',
+                hintText: 'e.g. cozy mystery with smart detectives',
+                border: OutlineInputBorder(),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _queryController,
-                textInputAction: TextInputAction.search,
-                onSubmitted: (_) => _fetchRecommendations(),
-                decoration: const InputDecoration(
-                  labelText: 'Your vibe or genre',
-                  hintText: 'e.g. cozy mystery with smart detectives',
-                  border: OutlineInputBorder(),
+            ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              value: _useLocation,
+              onChanged: (value) {
+                setState(() {
+                  _useLocation = value;
+                  _resolvedRegion = null;
+                  _regionSource = null;
+                });
+              },
+              title: const Text('Use current location for region'),
+              subtitle: const Text(
+                'Falls back to locale if permission denied.',
+              ),
+            ),
+            if (_resolvedRegion != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'Region: $_resolvedRegion (${_regionSource ?? 'locale'})',
+                  style: theme.textTheme.labelMedium,
                 ),
               ),
-              const SizedBox(height: 8),
-              SwitchListTile(
-                value: _useLocation,
-                onChanged: (value) {
-                  setState(() {
-                    _useLocation = value;
-                    _resolvedRegion = null;
-                    _regionSource = null;
-                  });
-                },
-                title: const Text('Use current location for region'),
-                subtitle: const Text('Falls back to locale if permission denied.'),
+            const SizedBox(height: 4),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isLoading ? null : _fetchRecommendations,
+                icon: const Icon(Icons.auto_awesome),
+                label: Text(_isLoading ? 'Thinking...' : 'Get recommendations'),
               ),
-              if (_resolvedRegion != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    'Region: $_resolvedRegion (${_regionSource ?? 'locale'})',
-                    style: theme.textTheme.labelMedium,
-                  ),
-                ),
-              const SizedBox(height: 4),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _isLoading ? null : _fetchRecommendations,
-                  icon: const Icon(Icons.auto_awesome),
-                  label: Text(_isLoading ? 'Thinking...' : 'Get recommendations'),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: _buildResults(theme),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(child: _buildResults(theme)),
+          ],
         ),
       ),
     );
@@ -362,20 +383,18 @@ class _RecommendationPageState extends State<RecommendationPage> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 6,
-                    children: providers.providers
-                        .map((provider) {
-                          final imageUrl = _tmdbImageUrl(provider.logoPath);
-                          return Chip(
-                            avatar: imageUrl != null
-                                ? CircleAvatar(
-                                    backgroundImage: NetworkImage(imageUrl),
-                                    backgroundColor: Colors.transparent,
-                                  )
-                                : null,
-                            label: Text(provider.displayName),
-                          );
-                        })
-                        .toList(),
+                    children: providers.providers.map((provider) {
+                      final imageUrl = _tmdbImageUrl(provider.logoPath);
+                      return Chip(
+                        avatar: imageUrl != null
+                            ? CircleAvatar(
+                                backgroundImage: NetworkImage(imageUrl),
+                                backgroundColor: Colors.transparent,
+                              )
+                            : null,
+                        label: Text(provider.displayName),
+                      );
+                    }).toList(),
                   ),
                 ] else if (providers != null) ...[
                   const SizedBox(height: 12),
