@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AI Movie & TV Recommender',
+      title: 'Watcha',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
@@ -41,13 +41,13 @@ class _RootTabs extends StatelessWidget {
           title: const Text('TV & Movie finder'),
           bottom: const TabBar(
             tabs: [
-              Tab(icon: Icon(Icons.search), text: 'Find a movie'),
               Tab(icon: Icon(Icons.auto_awesome), text: 'Recommend'),
+              Tab(icon: Icon(Icons.search), text: 'Find a movie'),
             ],
           ),
         ),
         body: const TabBarView(
-          children: [MovieLookupPage(), RecommendationPage()],
+          children: [RecommendationPage(), MovieLookupPage()],
         ),
       ),
     );
